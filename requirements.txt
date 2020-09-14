@@ -1,0 +1,4 @@
+json2html
+Flask
+smbus
+RPi.GPIO
