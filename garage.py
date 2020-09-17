@@ -3,9 +3,8 @@ import smbus
 import sys
 import RPi.GPIO as GPIO
 
-import json
-from flask import Flask, request, Response, make_response
-#import constants
+from flask import Flask, render_template, redirect
+import constants
 
 DEVICE_ADDR = 0x10
 bus = smbus.SMBus(1)
@@ -29,10 +28,14 @@ def checkStatus():
 
 app = Flask(__name__)
 
+@app.route('/')
+def default():
+	return render_template("buttons.html")
+
 @app.route('/press')
 def open():
 	press(1, .5)
-	return "garage button pressed"
+	return redirect('/')
 
 @app.route('/status')
 def status():
@@ -43,7 +46,7 @@ def status():
 		return "garage closed"
 	
 def main():
-	app.run(host = '0.0.0.0', port=8080, debug=True)
+	app.run(host = '0.0.0.0', port=constants.port, debug=True)
 
 if __name__ == "__main__":
 	main()
