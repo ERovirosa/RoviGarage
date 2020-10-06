@@ -10,7 +10,8 @@ DEVICE_ADDR = 0x10
 bus = smbus.SMBus(1)
 
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.IN)
+GPIO.setup(4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 def press(relay, duration):
 	bus.write_byte_data(DEVICE_ADDR, relay, 0xFF)
@@ -18,33 +19,29 @@ def press(relay, duration):
 	bus.write_byte_data(DEVICE_ADDR, relay, 0x00)
 	print("garage button pressed")
 
-def checkStatus():
-	if GPIO.input(17):
-		print("garage open")
-		return 1
+def checkStatus(pin):
+	if GPIO.input(pin):
+		return True
 	else:
-		print("garage closed")
-		return 0
+		return False
 
 app = Flask(__name__)
 
 @app.route('/')
 def default():
-	return render_template("buttons.html")
+	if(checkStatus(4)):
+		status = "fully closed"
+	elif(checkStatus(27)):
+		status = "fully open"
+	else:
+		status = "in the middle"
+	return render_template("buttons.html", status = status)
 
 @app.route('/press')
 def open():
 	press(1, .5)
 	return redirect('/')
 
-@app.route('/status')
-def status():
-	status = checkStatus()
-	if status:
-		return "garage open"
-	else:
-		return "garage closed"
-	
 def main():
 	app.run(host = '0.0.0.0', port=constants.port, debug=True)
 
